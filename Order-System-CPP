@@ -1,0 +1,203 @@
+/*
+    The purpose of this program is to act as a utility for companies selling spools of wire. It provides users with
+    the ability to check on their order status given a few parameters.
+*/
+// Includes any possibly relavant libraries we may need using the standard namespace.
+#include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <string>
+using namespace std;
+
+// An integer function which gets how many spools we have in stock.
+int getStock()
+{
+    int stock;
+    cout << "Enter the number of spools in stock: ";
+    cin >> stock;
+    return stock;
+}
+
+// A boolean function which acts as the function which gets all relevant information about the order.
+// Takes as parameters references in order to "return" more than one value.
+bool getOrder(int &numSpools, double &discount,  char &customShip, double &shipping)
+{
+    // Takes as input the number of spools ordered.
+    cout << "Please enter the number of spools ordered: ";
+    cin >> numSpools;
+    // Decides if the number of spools is valid.
+    if (numSpools >= 1)
+    {
+        // If valid, takes as input the percentage discount.
+        cout << "Enter the discount percentage for the customer: ";
+        cin >> discount;
+
+        // Decides if the discount is valid.
+        if (discount >= 0)
+        {
+            // If valid, takes as input if there will be special shipping charges.
+            cout << "Does the order include custom shipping and handling charges? [Enter Y for Yes or N for No]: ";
+            cin >> customShip;
+            
+            // Decides if the choice is valid.
+            if (customShip == 'Y' || customShip == 'y')
+            {
+                // If valid, takes as input the shipping charge per spool.
+                cout << "Enter the shipping and handling charge: ";
+                cin >> shipping;
+
+                // Decides if shipping charge is valid.
+                if (shipping < 0)
+                {
+                    // If not valid, raises error and returns false.
+                    cout << "Invalid input. Shipping and handling cannot be negative." << endl;
+                    return false;
+                }
+                else
+                {
+                    // If valid, returns true.
+                    return true;
+                }
+            }
+            else if (customShip == 'N' || customShip == 'n')
+            {
+                // If valid returns true.
+                return true;
+            }
+            else
+            {
+                // If not valid, ie. not Y or N, returns false.
+                cout << "Invalid input. The response should be Y for Yes or N for No." << endl;
+                return false;
+            }
+        }
+        else
+        {
+            // If not valid, ie. the percentage < 0, returns false.
+            cout << "Invalid input. The percentage cannot be negative." << endl;
+            return false;
+        }
+    }
+    else
+    {
+        // If not valid, ie. number of spools < 1, returns false.
+        cout << "Spools must be at least one." << endl;
+        return false;
+    }
+}
+
+// A double function which calculates the charge.
+// Takes as parameters the number of spools ordered and the discount percentage.
+double calculateSpoolCharges(int numSpools, double discount)
+{
+    // Defines the necessary variables and the defaule cost of a spool.
+    double charge, cost = 134.95;
+
+    // Calculates the charge prior to discount.
+    charge = numSpools * cost;
+
+    // Decides if their is a discount.
+    if (discount!=0)
+    {
+        // If there is a discount, turns it into an integer and calculates the charge - discount.
+        discount /= 100;
+        charge = charge - (charge * discount);
+    }
+    // Returns the charge.
+    return charge;
+}
+
+// A boolean function that determines if there is a back order.
+// Parameters: integer stock, reference for number of spools ordered, reference for backOrder.
+bool ifBack(int stock, int &numSpools, int &backOrder)
+{
+    // Decides if there is a back order.
+    if (numSpools > stock)
+    {
+        // If there is a back order, calculates the back order and updates the number of spools on hand.
+        backOrder = (numSpools - stock);
+        numSpools = numSpools - backOrder;
+        
+        // Returns true.
+        return true;
+    }
+    // Returns false by default.
+    return false;
+}
+
+// A void function that is used solely to display the values in the requested format.
+// Takes as parameters any value that needs to be displayed.
+void display(double discount, double charge, double shipping, double total, bool back, int backOrder, int numSpools)
+{
+    cout << fixed << setprecision(2);
+    cout << "\n\t\tOrder Summary" << endl;
+    cout << "==============================" << endl;
+    if (back == true)
+    {
+        cout << backOrder << " spools are on back order." << endl;
+        cout << numSpools << " spools are ready to ship." << endl;
+    }
+    else
+    {
+        cout << numSpools << " spools are ready to ship." << endl;
+    }
+    if (discount == 0)
+    {
+    cout << "The charges for " << numSpools << " spools : $" << charge << endl;
+    }
+    else
+    {
+    cout << "The charges for " << numSpools << " spools (including a " << setprecision(1) << discount << "% discount): $" << setprecision(2) << charge << endl;
+
+    }
+    cout << "Shipping and handling for " << numSpools << " spools: $" << shipping << endl;
+    cout << "The total charges (incl. shipping & handling): $" << total << endl;
+}
+
+// The main function of the program. Only acts as a starting point and does simple decisions.
+int main()
+{
+    // Defines the default values for the program.
+    double shipping = 15, discount, cost, total;
+    char customShip = 'N';
+    int numSpools, stock, backOrder;
+    bool back, go;
+
+    // Assigns an arbitrary variable that determines is used to determine if the order is valid.
+    go = getOrder(numSpools, discount, customShip, shipping);  
+
+    // If the order is not invalid, proceeds.
+    if (go != false)
+    {
+        // Gets the number of spools on hand.
+        stock = getStock();
+
+        // Decides if the number of spools on hand is valid.
+        if (stock > 0)
+        {
+            // If valid, calls the necessary functions for the output.
+            back = ifBack(stock, numSpools, backOrder);
+            cost = calculateSpoolCharges(numSpools, discount);
+
+            // Updates the shipping variable.
+            shipping = numSpools * shipping;
+
+            // Tallies the total.
+            total = cost + shipping;
+
+            // Calls the display function.
+            display(discount, cost, shipping, total, back, backOrder, numSpools);
+        }
+        else
+        {
+            // If invalid number of spools, ie. spools < 0, raises error.
+            cout << "The number of spools cannot be negative." << endl;
+        }
+    }
+    // Provides excellent customer service.
+    cout << "\nThank you, please shop again." << endl;
+    
+    // Returns 0 per convention.
+    return 0;
+}
+
